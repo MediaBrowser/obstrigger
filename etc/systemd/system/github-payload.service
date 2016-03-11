@@ -1,0 +1,15 @@
+[Unit]
+Description=Ruby web server, listening for github webhooks
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/github-payload.env
+RemainAfterExit=yes
+PIDFile=/www/projects/github-payload/configs/thin.4567.pid
+WorkingDirectory=/www/projects/github-payload
+ExecStart=/usr/local/rvm/bin/github_thin -C /www/projects/github-payload/configs/config.yml -R /www/projects/github-payload/configs/config.ru start
+ExecStop=/usr/local/rvm/bin/github_thin -C /www/projects/github-payload/configs/config.yml -R /www/projects/github-payload/configs/config.ru stop
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target

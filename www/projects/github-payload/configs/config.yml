@@ -1,0 +1,14 @@
+---
+     environment: production
+     chdir: "/www/projects/github-payload"
+     address: 127.0.0.1
+     user: root
+     port: 4567
+     pid: "/www/projects/github-payload/configs/thin.pid"
+     rackup: "/www/projects/github-payload/configs/config.ru"
+     log: "/www/projects/github-payload/log/thin.log"
+     max_conns: 1024
+     timeout: 30
+     servers: 1
+     max_persistent_conns: 512
+     daemonize: false

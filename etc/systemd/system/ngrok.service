@@ -1,0 +1,13 @@
+[Unit]
+Description=Share local port(s) with ngrok
+After=network.target, github-payload
+
+[Service]
+PrivateTmp=true
+Type=simple
+Restart=always
+RestartSec=1min
+ExecStart=/usr/bin/ngrok http -config /opt/ngrok/ngrok.yml -log stdout -log-format json 4567
+
+[Install]
+WantedBy=multi-user.target
