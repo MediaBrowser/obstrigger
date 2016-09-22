@@ -2,6 +2,8 @@
 This is a guide on how to setup a [DigitialOcean](http://www.digitalocean.com)
 droplet to update and trigger package builds on the [OpenBuildService](http://build.opensuse.org).
 
+The project is based heavily on GitHub's own [Webhooks Guide](https://developer.github.com/webhooks/)
+
 The heart of this project is a thin server that listen to GitHub webhooks and
 executes builds base on the POST data provided by GitHub's api.
 
@@ -56,7 +58,8 @@ maxretry = 3
 ```
 
 The following should be added to /etc/fail2ban/filter.d/sshd.conf, under
-failregex.
+failregex. This will ban individuals who try to login with invalid private ssh
+certificate.
 ```
 ^%(__prefix_line)sConnection closed by <HOST> \[preauth\]$
 ```
@@ -72,7 +75,7 @@ rvm use ruby-2.2.1@ruby2thin
 ruby -v
 rvm gemset list
 gem install sinatra thin openssl rack
-rvm wrapper ruby-2.2.1@ruby2thin github thin
+rvm wrapper ruby-2.2.1@ruby2thin github_thin
 
 
 rvm alias create webserver_thin 2.3.1
@@ -86,7 +89,8 @@ mkdir -p /www/projects/github-payload/configs
 mkdir -p /www/projects/github-payload/log
 ```
 
-Install the following systemd service file.
+Install the systemd service file included in the repo. It should look very
+similar to what you see below.
 ```
 [Unit]
 Description=Ruby web server, listening for github webhooks
@@ -97,8 +101,8 @@ EnvironmentFile=/etc/github-payload.env
 RemainAfterExit=yes
 PIDFile=/www/projects/github-payload/configs/thin.4567.pid
 WorkingDirectory=/www/projects/github-payload
-ExecStart=/usr/local/rvm/bin/github_thin -V -C /www/projects/github-payload/configs/config.yml -R /www/projects/github-payload/configs/config.ru start
-ExecStop=/usr/local/rvm/bin/github_thin -V -C /www/projects/github-payload/configs/config.yml -R /www/projects/github-payload/configs/config.ru stop
+ExecStart=/usr/local/rvm/bin/github_thin -C /www/projects/github-payload/configs/config.yml -R /www/projects/github-payload/configs/config.ru start
+ExecStop=/usr/local/rvm/bin/github_thin -C /www/projects/github-payload/configs/config.yml -R /www/projects/github-payload/configs/config.ru stop
 TimeoutSec=300
 
 [Install]
@@ -134,6 +138,8 @@ Setup a TOKEN in order to secure the thin server:
 ```
 echo -n "SECRET_TOKEN=$(ruby -rsecurerandom -e 'puts SecureRandom.hex(20)')" > /etc/github-payload.env
 ```
+Please note how the systemd service file sources the resulting TOKEN into the
+service's environment.
 
 
 ## Setup ngrok:
@@ -170,4 +176,3 @@ You can test the api using `curl` such as in the examples below.
 ```
 curl -X POST -H "Accept: application/json" -d '{"body": "Payload test." }' http://localhost:4567/payload
 curl -X POST -H "Accept: application/json" -d "@test.json" http://localhost:4567/payload
-```
